@@ -1,0 +1,92 @@
+-- Khởi tạo
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = LocalPlayer.PlayerGui
+ScreenGui.ResetOnSpawn = false
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0.1, 0, 0.35, 0)
+Frame.Position = UDim2.new(0.45, 0, 0.4, 0)
+Frame.Draggable = true
+Frame.Active = true
+Frame.Parent = ScreenGui
+
+local Label = Instance.new("TextLabel")
+Label.Size = UDim2.new(1, 0, 0.15, 0)
+Label.Position = UDim2.new(0, 0, 0, 0)
+Label.Text = "Số block: 0"
+Label.TextTransparency = 0
+Label.BackgroundTransparency = 1
+Label.Parent = Frame
+
+local ButtonCreateBlock = Instance.new("TextButton")
+ButtonCreateBlock.Size = UDim2.new(1, 0, 0.3, 0)
+ButtonCreateBlock.Position = UDim2.new(0, 0, 0.15, 0)
+ButtonCreateBlock.Text = "Tạo block"
+ButtonCreateBlock.Parent = Frame
+
+local ButtonDelete = Instance.new("TextButton")
+ButtonDelete.Size = UDim2.new(1, 0, 0.3, 0)
+ButtonDelete.Position = UDim2.new(0, 0, 0.45, 0)
+ButtonDelete.Text = "Xóa block"
+ButtonDelete.Parent = Frame
+
+local ButtonDeleteAll = Instance.new("TextButton")
+ButtonDeleteAll.Size = UDim2.new(1, 0, 0.3, 0)
+ButtonDeleteAll.Position = UDim2.new(0, 0, 0.75, 0)
+ButtonDeleteAll.Text = "Xóa tất cả"
+ButtonDeleteAll.Parent = Frame
+
+local blocks = {}
+
+local function deleteBlock(block)
+    local tween = TweenService:Create(block, TweenInfo.new(1.5), {Transparency = 1})
+    tween:Play()
+    tween.Completed:Wait()
+    block:Destroy()
+end
+
+ButtonCreateBlock.MouseButton1Click:Connect(function()
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local block = Instance.new("Part")
+        block.Size = Vector3.new(10, 1, 10)
+        block.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -10)
+        block.Anchored = true
+        block.Parent = game.Workspace
+        block.Color = Color3.new(0.68, 0.85, 1)
+        block.CanCollide = true
+        table.insert(blocks, block)
+        Label.Text = "Số block: " .. tostring(#blocks)
+    end
+end)
+
+ButtonDelete.MouseButton1Click:Connect(function()
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        for _, block in pairs(blocks) do
+            if (block.Position - character.HumanoidRootPart.Position).Magnitude < 5 then
+                table.remove(blocks, table.find(blocks, block))
+                Label.Text = "Số block: " .. tostring(#blocks)
+                deleteBlock(block)
+                break
+            end
+        end
+    end
+end)
+
+ButtonDeleteAll.MouseButton1Click:Connect(function()
+    for _, block in pairs(blocks) do
+        local tween = TweenService:Create(block, TweenInfo.new(1.5), {Transparency = 1})
+        tween:Play()
+    end
+    wait(1.5)
+    for _, block in pairs(blocks) do
+        block:Destroy()
+    end
+    blocks = {}
+    Label.Text = "Số block: 0"
+end)
